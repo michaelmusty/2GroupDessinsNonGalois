@@ -1,7 +1,7 @@
 load "config.m";
 
-/* K<nu> := CyclotomicField(4); */
-K := Rationals();
+K<nu> := CyclotomicField(4);
+/* K := Rationals(); */
 
 // X1
 P1<[x]> := PolynomialRing(K, 2);
