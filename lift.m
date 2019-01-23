@@ -25,33 +25,33 @@ AKX2 := AlgorithmicFunctionField(KX2);
 _<[x]> := BaseField(AKX2);
 _<[y]> := Parent(DefiningPolynomials(AKX2)[1]);
 
-/* // iota_crv : X2->X2 */
-/* iota_crv := map<X2->X2|[x[1], -x[2], nu*(x[2]-1)/(x[2]+1)*x[3]]>; */
-/* _<[x]> := Parent(DefiningEquations(iota_crv)[1]); */
+// iota_crv : X2->X2
+iota_crv := map<X2->X2|[x[1], -x[2], nu*(x[2]-1)/(x[2]+1)*x[3]]>;
+_<[x]> := Parent(DefiningEquations(iota_crv)[1]);
 
-/* // iota : KX2->KX2, extract sqrt of f to get curve upstairs */
-/* KX2<[x]> := FunctionField(X2); */
-/* iota := hom<KX2->KX2|[x[1], -x[2], nu*(x[2]-1)/(x[2]+1)*x[3]]>; */
-/* f := KX2!(x[3]/x[2]); */
+// iota : KX2->KX2, extract sqrt of f to get curve upstairs
+KX2<[x]> := FunctionField(X2);
+iota := hom<KX2->KX2|[x[1], -x[2], nu*(x[2]-1)/(x[2]+1)*x[3]]>;
+f := KX2!(x[3]/x[2]);
 
-/* // X3 curve upstairs */
-/* P3<[x]> := PolynomialRing(K, 4); */
-/* eqns3 := [x[2]^2-x[1], (x[2]-1)*x[3]^2-(x[2]^2+x[2])] cat [x[2]*x[4]^2-x[3]]; */
-/* I3 := ideal<P3|eqns3>; */
-/* X3<[x]> := Curve(AffineSpace(P3), I3); */
-/* Qs, Ps := PrimaryDecomposition(I3); */
-/* X3_irred<[x]> := Curve(AffineSpace(P3), Ps[1]); */
+// X3 curve upstairs
+P3<[x]> := PolynomialRing(K, 4);
+eqns3 := [x[2]^2-x[1], (x[2]-1)*x[3]^2-(x[2]^2+x[2])] cat [x[2]*x[4]^2-x[3]];
+I3 := ideal<P3|eqns3>;
+X3<[x]> := Curve(AffineSpace(P3), I3);
+Qs, Ps := PrimaryDecomposition(I3);
+X3_irred<[x]> := Curve(AffineSpace(P3), Ps[1]);
 
-/* // construct mp: X2->E and its inverse */
-/* Z<[z]> := ProjectiveClosure(X2); */
-/* point := Z![0,0,0,1]; */
-/* E<x,y,z>, mp := EllipticCurve(Z, point); */
-/* mp := Expand(mp); */
-/* _<[z]> := Parent(DefiningEquations(mp)[1]); */
-/* bl, mp_inv := IsInvertible(mp); */
-/* _<x,y,z> := Parent(DefiningEquations(mp_inv)[1]); */
-/* assert bl; */
-/* pc := PCMap(Ambient(X2)); */
+// construct mp: X2->E and its inverse
+Z<[z]> := ProjectiveClosure(X2);
+point := Z![0,0,0,1];
+E<x,y,z>, mp := EllipticCurve(Z, point);
+mp := Expand(mp);
+_<[z]> := Parent(DefiningEquations(mp)[1]);
+bl, mp_inv := IsInvertible(mp);
+_<x,y,z> := Parent(DefiningEquations(mp_inv)[1]);
+assert bl;
+pc := PCMap(Ambient(X2));
 
 /* // 2 torsion points */
 /* two_torsion_points_E := [E![1,0,1], E![0,0,1], E![-1,0,1], E![0,1,0]]; */
