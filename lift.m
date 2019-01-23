@@ -19,6 +19,7 @@ P2<[x]> := PolynomialRing(K, 3);
 eqns2 := [x[2]^2-x[1], (x[2]-1)*x[3]^2-(x[2]^2+x[2])];
 I2 := ideal<P2|eqns2>;
 X2<[x]> := Curve(AffineSpace(P2), I2);
+X2 := ProjectiveClosure(X2);
 KX2 := FunctionField(X2);
 _<[z]> := Curve(KX2);
 AKX2 := AlgorithmicFunctionField(KX2);
