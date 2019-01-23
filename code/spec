@@ -1,4 +1,5 @@
 {
   enumerating_triples.m
   point_counting.m
+  text_processing.m
 }
