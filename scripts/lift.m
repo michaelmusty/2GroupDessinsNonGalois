@@ -1,4 +1,5 @@
-load "../config.m";
+/* load "../config.m"; */
+load "config.m";
 
 K<nu> := CyclotomicField(4);
 /* K := Rationals(); */
