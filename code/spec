@@ -2,4 +2,8 @@
   enumerating_triples.m
   text_processing.m
   reduce_mod_p.m
+  sanity_check.m
+  refined.m
+  passports.m
+  robust_sanity_check.m
 }
