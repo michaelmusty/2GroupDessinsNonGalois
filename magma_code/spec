@@ -1,0 +1,26 @@
+{
+  database
+  {
+    TwoDB.m
+    read_write.m
+  }
+  misc
+  {
+    text_processing.m
+  }
+  reduction
+  {
+    reduce_mod_p.m
+  }
+  tests
+  {
+    sanity_check.m
+  }
+  triples
+  {
+    auts.m
+    enumerating_triples.m
+    passports.m
+    refined.m
+  }
+}
