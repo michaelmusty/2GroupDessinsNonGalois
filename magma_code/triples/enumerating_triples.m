@@ -43,10 +43,8 @@ intrinsic Extensions(sigma::SeqEnum[GrpPermElt]) -> Any
   assert #G eq d; // Galois
   l := Floor(Log(2,Degree(G)));
   assert 2^l eq d;
-  // G-module
+  // G-module with trivial action
   triv := Matrix(GF(2), [[1]]);
-  // FIXME?
-  // trivs := [ triv : i in [1..#Generators(G)] ];
   trivs := [ triv : i in [1..3] ];
   A := GModule(G, trivs);
   // H^2
@@ -131,7 +129,7 @@ intrinsic Lifts(extension::List, below::SeqEnum[GrpPermElt]) -> Any
     return lifts;
 end intrinsic;
 
-intrinsic SolvableCycleStructure(triple::SeqEnum[GrpPermElt]) -> SeqEnum
+intrinsic CycleStructures(triple::SeqEnum[GrpPermElt]) -> SeqEnum
   {returns sequence of 3 cycle structures for triple.}
   assert #triple eq 3;
   return [ CycleStructure(triple[i]) : i in [1..3] ];
@@ -169,7 +167,7 @@ intrinsic ExtensionToTriples(extension::List, below::SeqEnum[GrpPermElt]) -> Any
     end if;
   // sort by cycle structure
     assert #lifts gt 0;
-    cycle_structures := [SolvableCycleStructure(lifts[i]) : i in [1..#lifts]];
+    cycle_structures := [CycleStructures(lifts[i]) : i in [1..#lifts]];
     unique_cycle_structures := SetToSequence(SequenceToSet(cycle_structures));
     assert #unique_cycle_structures in [1, 2];
     if #unique_cycle_structures eq 1 then
@@ -187,10 +185,10 @@ intrinsic ExtensionToTriples(extension::List, below::SeqEnum[GrpPermElt]) -> Any
       cover1 := [];
       cover2 := [];
       for lift in lifts do
-        if SolvableCycleStructure(lift) eq unique_cycle_structures[1] then
+        if CycleStructures(lift) eq unique_cycle_structures[1] then
           Append(~cover1, lift);
         else
-          if SolvableCycleStructure(lift) eq unique_cycle_structures[2] then
+          if CycleStructures(lift) eq unique_cycle_structures[2] then
             Append(~cover2, lift);
           else
             error "ERROR!";
@@ -232,11 +230,11 @@ intrinsic Coverings(below::SeqEnum[GrpPermElt]) -> Any
     l := Floor(Log(2,Degree(G)));
     assert 2^l eq d;
   // extensions
-    /* vprintf Solvable : "Computing extensions..."; */
+    vprintf Two : "Computing extensions...";
     t0 := Cputime();
     extensions := Extensions(below);
     t1 := Cputime();
-    /* vprintf Solvable : "done: %o seconds.\n", t1-t0; */
+    vprintf Two : "done: %o seconds.\n", t1-t0;
   // initial lists for return
     ramified := [* *];
     unramified := [* *];
@@ -265,8 +263,120 @@ intrinsic Coverings(below::SeqEnum[GrpPermElt]) -> Any
         end if;
       end for;
       t1 := Cputime();
-      /* vprintf Solvable : "extension %o out of %o took %o seconds.\n", i, #extensions, t1-t0; */
+      vprintf Two : "extension %o out of %o took %o seconds.\n", i, #extensions, t1-t0;
     end for;
   // return
     return ramified, unramified, impossible;
+end intrinsic;
+
+intrinsic ComputeTwoDBAtDegree(d::RngIntElt) -> Any
+  {All at once to save on database merging. returns lists below,above that then need to be written.}
+  if IsEven(d) and #Factorization(d) eq 1 then
+    d_below := d div 2;
+    filenames_below := Filenames(d_below);
+    if #filenames_below eq 0 then
+      error "we have not computed far enough to compute to this degree yet!";
+    else
+      need_to_write_below := [];
+      need_to_write_above := [];
+      for i := 1 to #filenames_below do // i loops over TwoDBObjects below
+        t0_i := Cputime();
+        name := filenames_below[i];
+        vprintf Two : "Starting...\n";
+        vprintf Two : "Degree %o above %o: ", d, name;
+        vprintf Two : "%o out of %o\n\n", i, #filenames_below;
+        s_below := ReadTwoDB(name);
+        s_below`Parents := [];
+        orbit_below := s_below`GaloisOrbit;
+        vprintf Two : "Galois orbit size = %o\n", #orbit_below;
+        t0 := Cputime();
+        all_ramified := [* *];
+        all_unramified := [* *];
+        all_impossible := [* *];
+        for j := 1 to #orbit_below do
+          ramified, unramified, impossible := Coverings(orbit_below[j]);
+          all_ramified cat:= ramified;
+          all_unramified cat:= unramified;
+          all_impossible cat:= impossible;
+        end for;
+        t1 := Cputime();
+        vprintf Two : "Coverings of %o:", Name(s_below);
+        vprintf Two : " %o seconds\n", t1-t0;
+        vprintf Two : "#ramified = %o\n", #ramified;
+        vprintf Two : "#unramified = %o\n", #unramified;
+        all := all_ramified cat all_unramified;
+        vprintf Two : "#total = %o\n", #all;
+        aboves := [];
+        for j := 1 to #all do
+          t0 := Cputime();
+          pass := all[j][1];
+          sigma := pass[1];
+          blocks := all[j][2];
+          // determine path number
+          new_name := GenerateName(sigma);
+          existing_path_numbers := [];
+          for k := 1 to #need_to_write_above do
+            test := need_to_write_above[k];
+            test_name := PassportName(test);
+            if test_name eq new_name then
+              Append(~existing_path_numbers, PathNumber(test));
+            end if;
+          end for;
+          for a in aboves do
+            a_name := PassportName(a);
+            if a_name eq new_name then
+              Append(~existing_path_numbers, PathNumber(a));
+            end if;
+          end for;
+          assert (#existing_path_numbers eq 0) or (Max(existing_path_numbers) eq #existing_path_numbers);
+          path_number := #existing_path_numbers+1;
+          // make new db object
+          above := CreateTwoDB(pass, blocks, path_number);
+          // update above`Child
+          above`Child := Name(s_below);
+          // update above`PathToPP1
+          above`PathToPP1 := s_below`PathToPP1 cat [Name(above)];
+          // update s_below`Parents
+          Append(~s_below`Parents, Name(above));
+          // append to aboves
+          Append(~aboves, above);
+          t1 := Cputime();
+          vprintf Two : "j = %o out of %o:\n", j, #all;
+          vprintf Two : "  #checks for path number = %o\n", #need_to_write_above;
+          vprintf Two : "  that took %o seconds\n", t1-t0;
+        end for;
+        // update need_to_write_above
+        need_to_write_above cat:= aboves;
+        // update need_to_write_below
+        Append(~need_to_write_below, s_below);
+        t1_i := Cputime();
+        vprintf Two : "\n";
+        vprintf Two : "Degree %o above %o done: ", d, name;
+        vprintf Two : "%o out of %o\n", i, #filenames_below;
+        vprintf Two : "That took %o seconds\n\n", t1_i-t0_i;
+      end for;
+      vprintf Two : "TwoDB lists (below, above) to be written returned\n";
+      return need_to_write_below, need_to_write_above;
+    end if;
+  else
+    error "degree is not valid";
+  end if;
+end intrinsic;
+
+intrinsic WriteTwoDBFromLists(need_to_write_below::SeqEnum[TwoDB], need_to_write_above::SeqEnum[TwoDB]) -> Any
+  {}
+  for s in need_to_write_below do
+    WriteTwoDB(s);
+  end for;
+  for s in need_to_write_above do
+    WriteTwoDB(s);
+  end for;
+  return Sprintf("TwoDB written from lists: #below = %o, #above=%o\n", #need_to_write_below, #need_to_write_above);
+end intrinsic;
+
+intrinsic WriteTwoDBAtDegree(d::RngIntElt) -> Any
+  {}
+  need_to_write_below, need_to_write_above := ComputeTwoDBAtDegree(d);
+  WriteTwoDBFromLists(need_to_write_below, need_to_write_above);
+  return Sprintf("TwoDB written at degree %o\n", d);
 end intrinsic;

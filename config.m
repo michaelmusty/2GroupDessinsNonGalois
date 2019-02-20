@@ -1,1 +1,1 @@
-AttachSpec("code/spec");
+AttachSpec("magma_code/spec");

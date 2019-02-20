@@ -51,7 +51,7 @@ declare attributes TwoDB:
 
 intrinsic Print(s::TwoDB)
   {Print TwoDB}
-  printf "TwoDB %o : %o : size %o \n", Name(s), Geometry(s), Size(s);
+  printf "%o : %o : size %o", Name(s), Geometry(s), GaloisOrbitSize(s);
 end intrinsic;
 
 intrinsic Copy(s::TwoDB) -> TwoDB

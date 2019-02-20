@@ -1,3 +1,28 @@
+/* generate name */
+
+intrinsic GenerateName(sigma::SeqEnum[GrpPermElt]) -> MonStgElt
+  {Generate a unique string identifying the passport corresponding to sigma.}
+  assert #sigma eq 3;
+  H := Parent(sigma[1]);
+  d := Degree(H);
+  G := sub<Sym(d)|sigma>;
+  assert IsTransitive(G);
+  a,b,c := Explode([Order(sigma[1]), Order(sigma[2]), Order(sigma[3])]);
+  if d gt 16 then
+    d, g := Explode(IdentifyGroup(G)); // small group identification
+    name := Sprintf("%oS%o-%o,%o,%o", d, g, a, b, c);
+  else
+    g, d := TransitiveGroupIdentification(G);
+    name := Sprintf("%oT%o-%o,%o,%o", d, g, a, b, c);
+  end if;
+  c0 := #CycleDecomposition(sigma[1]);
+  c1 := #CycleDecomposition(sigma[2]);
+  coo := #CycleDecomposition(sigma[3]);
+  genus := (d+2-c0-c1-coo)/2;
+  name *:= Sprintf("-g%o", genus);
+  return name;
+end intrinsic;
+
 /* read information from file */
 
 intrinsic In2GroupDessinRepository() -> BoolElt
@@ -60,13 +85,13 @@ intrinsic GetPassportNameFromFile(filename::MonStgElt) -> MonStgElt
   end if;
 end intrinsic;
 
-intrinsic Read(filename::MonStgElt) -> TwoDB
+intrinsic ReadTwoDB(filename::MonStgElt) -> TwoDB
   {Load the TwoDB in filename.}
   assert In2GroupDessinRepository();
   // extract d from filename
   l := GetInfo(filename);
   d := l[1];
-  // extract text from file
+  dir := GetCurrentDirectory();
   file := dir cat Sprintf("/TwoDB/%o/%o", d, filename);
   str := Read(file);
   // eval
@@ -90,7 +115,6 @@ intrinsic AssignedAttributes(s::TwoDB) -> SeqEnum[MonStgElt]
   ass := [];
   for attr in all do
     if assigned s``attr then
-      Append(~ass, attr);
       Append(~ass, attr);
     end if;
   end for;
@@ -119,9 +143,10 @@ intrinsic WriteText(s::TwoDB) -> MonStgElt
     return str;
 end intrinsic;
 
-intrinsic Write(s::TwoDB) -> MonStgElt
+intrinsic WriteTwoDB(s::TwoDB) -> MonStgElt
   {write a (magma loadable) TwoDB s to filename.m in the appropriate directory.}
   assert In2GroupDessinRepository();
+  dir := GetCurrentDirectory();
   if (not assigned s`Degree) or (not assigned s`Name) then
     error "this database object does not have enough information worth saving!";
   end if;
