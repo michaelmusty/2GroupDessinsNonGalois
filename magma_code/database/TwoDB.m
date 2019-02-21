@@ -29,6 +29,12 @@ declare attributes TwoDB:
     PathToPP1,
     Parents,
     Child,
+  // Belyi curve and map : simplified models if necessary
+    BelyiCurve,
+    BelyiMap,
+  // two group Belyi curve and map : "two group" model
+    TwoGroupBelyiCurve,
+    TwoGroupBelyiMap,
   // temporary attributs (for now) to compute action on differentials
     IsTwoGroupBelyiMapComputed, // BoolElt
     BelyiCurveList, // List[Crv]
@@ -77,6 +83,26 @@ intrinsic TwoDBInitialize() -> TwoDB
 end intrinsic;
 
 /* access attribues */
+
+intrinsic BelyiCurve(s::TwoDB) -> Any
+  {}
+  return s`BelyiCurve;
+end intrinsic;
+
+intrinsic BelyiMap(s::TwoDB) -> Any
+  {}
+  return s`BelyiMap;
+end intrinsic;
+
+intrinsic TwoGroupBelyiCurve(s::TwoDB) -> Any
+  {}
+  return s`TwoGroupBelyiCurve;
+end intrinsic;
+
+intrinsic TwoGroupBelyiMap(s::TwoDB) -> Any
+  {}
+  return s`TwoGroupBelyiMap;
+end intrinsic;
 
 intrinsic Name(s::TwoDB) -> MonStgElt
   {}
@@ -186,4 +212,29 @@ end intrinsic;
 intrinsic PointedAutomorphismGroup(s::TwoDB) -> Any
   {}
   return s`PointedAutomorphismGroup;
+end intrinsic;
+
+intrinsic PathToPP1(s::TwoDB) -> Any
+  {}
+  return s`PathToPP1;
+end intrinsic;
+
+intrinsic Parents(s::TwoDB) -> Any
+  {}
+  return s`Parents;
+end intrinsic;
+
+intrinsic ParentObjects(s::TwoDB) -> Any
+  {}
+  return [ReadTwoDB(name cat ".m") : name in Parents(s)];
+end intrinsic;
+
+intrinsic Child(s::TwoDB) -> Any
+  {}
+  return s`Child;
+end intrinsic;
+
+intrinsic ChildObject(s::TwoDB) -> Any
+  {}
+  return ReadTwoDB(Child(s) cat ".m");
 end intrinsic;

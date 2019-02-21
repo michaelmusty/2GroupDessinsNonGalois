@@ -12,15 +12,15 @@ intrinsic PolynomialReduction(poly::RngMPolElt, mp::Map, P::RngMPol) -> RngMPolE
   return poly_pp;
 end intrinsic;
 
-intrinsic ReduceCurve(X::Crv, p::RngIntElt) -> Crv
-  {Reduce X mod p and return X mod p.}
+intrinsic ReduceCurve(X::Crv, p::RngIntElt) -> Any
+  {Reduce X mod p and return X mod pp above p.}
   // setup
     K := BaseField(X);
     if not IsProjective(X) then
       X := ProjectiveClosure(X);
     end if;
     ZK := Integers(K); // works for any K
-    pp := Factorization(p*ZK)[1][1];
+    pp := Factorization(p*ZK)[1][1]; // which pp?
     FFq, mpZKtoFFq := ResidueClassField(pp);
     I := Ideal(X);
   // reduce I mod pp
@@ -36,5 +36,41 @@ intrinsic ReduceCurve(X::Crv, p::RngIntElt) -> Crv
   // make new curve and coordinate rings
     PP := ProjectiveSpace(Generic(Ipp));
     Xpp := Curve(PP, Ipp);
-    return Xpp;
+  return Xpp;
+end intrinsic;
+
+intrinsic ReduceDivisor(D::DivCrvElt, Xpp::Crv[FldFin]) -> Any
+  {return Dpp a divisor on Xpp}
+  X := Curve(D);
+  p := Characteristic(BaseField(Xpp));
+  // setup
+  K := BaseField(X);
+  if not IsProjective(X) then
+    X := ProjectiveClosure(X);
+  end if;
+  ZK := Integers(K); // works for any K
+  pp := Factorization(p*ZK)[1][1]; // which pp?
+  FFq, mpZKtoFFq := ResidueClassField(pp);
+  I := Ideal(X);
+  // tests
+  DivX := DivisorGroup(X);
+  DivXpp := DivisorGroup(Xpp);
+  assert D in DivX;
+  assert Codomain(mpZKtoFFq) eq BaseField(Xpp);
+  // construct new divisor mod pp
+  places, coeffs := Support(D);
+  points := [RepresentativePoint(pl) : pl in places];
+  sequences := [Coordinates(pt) : pt in points];
+  sequences_pp := [mpZKtoFFq(sequence) : sequence in sequences];
+  points_pp := [Xpp!sequence_pp : sequence_pp in sequences_pp];
+  Dpp := DivXpp!0;
+  for i := 1 to #points_pp do
+    Dpp +:= coeffs[i]*Divisor(points_pp[i]);
+  end for;
+  return Dpp;
+end intrinsic;
+
+intrinsic ReduceDivisor(D::DivCrvElt, p::RngIntElt) -> Any
+  {}
+  return ReduceDivisor(D, ReduceCurve(Curve(D), p));
 end intrinsic;

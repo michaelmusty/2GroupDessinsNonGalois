@@ -5,6 +5,13 @@
     read_write.m
     creation.m
   }
+  maps
+  {
+    degree2.m
+    compute_belyi_map.m
+    analyze_divisors.m
+    base_change.m
+  }
   misc
   {
     text_processing.m
