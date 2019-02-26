@@ -23,6 +23,7 @@
   tests
   {
     sanity_check.m
+    galois_group_sanity_check.m
   }
   triples
   {

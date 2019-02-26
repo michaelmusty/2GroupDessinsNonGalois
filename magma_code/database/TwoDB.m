@@ -58,6 +58,17 @@ declare attributes TwoDB:
 intrinsic Print(s::TwoDB)
   {Print TwoDB}
   printf "%o : %o : size %o", Name(s), Geometry(s), GaloisOrbitSize(s);
+  if IsTwoGroupBelyiMapComputed(s) then
+    X := TwoGroupBelyiCurve(s);
+    K := BaseField(X);
+    if Degree(K) gt 1 then
+      printf " : Belyi computed over number field %o ", DefiningPolynomial(K);
+    else
+      printf " : Belyi computed over QQ";
+    end if;
+  else
+    printf " : Belyi not computed";
+  end if;
 end intrinsic;
 
 intrinsic Copy(s::TwoDB) -> TwoDB

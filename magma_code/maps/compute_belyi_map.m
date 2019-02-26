@@ -154,11 +154,7 @@ intrinsic ExtractRoot(Y::Crv, f::FldFunFracSchElt, m::RngIntElt) -> Crv
     new_equation := denom*PX.Rank(PX)^m-numer;
     Append(~basis, new_equation);
     IX := ideal< PX | basis >;
-    vprintf Two : "saturating at...";
-    // S := Saturation(IX, numer); // saturate at numerator
-    // vprintf Two : "numerator...\n";
     S := Saturation(IX, denom); // saturate at numerator
-    vprintf Two : "denominator...\n";
     assert IsPrime(S);
   // new ambient
     AAX := AffineSpace(PX);
@@ -167,43 +163,72 @@ intrinsic ExtractRoot(Y::Crv, f::FldFunFracSchElt, m::RngIntElt) -> Crv
     return X;
 end intrinsic;
 
+intrinsic SingularitiesNotTooBad(X::Crv) -> BoolElt
+  {}
+  if IsAffine(X) then
+    X := ProjectiveClosure(X);
+  end if;
+  for sing in SingularPoints(X) do
+    if not IsDoublePoint(sing) then
+      return false;
+    end if;
+  end for;
+  return true;
+end intrinsic;
+
+intrinsic GetExtractFunction(R::DivCrvElt) -> Any
+  {Attempt to find 1 dimensional Lspace using all points in R.}
+  supp := Support(R);
+  suppset := SequenceToSet(supp);
+  subs := Subsets(suppset);
+  worked := [];
+  for sub in subs do
+    if #sub ne 0 and #sub ne #suppset then
+      pos := SetToDivisor(sub);
+      neg := SetToDivisor(suppset diff sub);
+      supp, mult := Support(pos-neg);
+      if Dimension(RiemannRochSpace(pos-neg)) eq 1 then
+        Append(~worked, pos-neg);
+      end if;
+    end if;
+  end for;
+  sel := TwoSelmerClasses(worked);
+  return sel[1], sel;
+end intrinsic;
+
 intrinsic ComputeBelyiMap(s::TwoDB, t::TwoDB) -> TwoDB
   {}
-  // silently analyze which function to extract sqrt
-  SetVerbose("Two", false);
   s := Copy(s);
   t := Copy(t);
   assert IsTwoGroupBelyiMapComputed(t);
   Ds := GetDivisors(t);
   ram := GetRamification(s, t);
   R := RamificationToDivisor(ram, Ds);
-  sel := TwoSelmerClasses(AnalyzeDivisor(R, 5));
-  sel_f := [];
-  for i := 1 to #sel do
-    D := sel[i];
-    LD, mp := RiemannRochSpace(D);
-    assert Dimension(LD) eq 1;
-    Append(~sel_f, mp(LD.1));
-  end for;
-  SetVerbose("Two", true);
-  if #sel_f eq 1 then
-    vprintf Two : "There is %o 2SelmerRep : \n", #sel_f;
-    vprintf Two : "%o\n", sel_f;
-  else
-    vprintf Two : "There are %o 2SelmerReps : \n", #sel_f;
-    vprintf Two : "%o\n", sel_f;
-    error "Yikes! Which rep?";
-  end if;
-  assert #sel_f eq 1;
-  f := sel_f[1];
+  /* if (true in [IsSingular(RepresentativePoint(pl)) : pl in Support(R)]) then */
+  /*   error "singular ramification point"; */
+  /* end if; */
+  // analyze 2 selmer classes
+  /* sel := TwoSelmerClasses(AnalyzeDivisor(R, 3)); */
+  /* sel_f := []; */
+  /* for i := 1 to #sel do */
+  /*   D := sel[i]; */
+  /*   LD, mp := RiemannRochSpace(D); */
+  /*   assert Dimension(LD) eq 1; */
+  /*   Append(~sel_f, mp(LD.1)); */
+  /* end for; */
+  /* assert #sel_f eq 1; */
+  /* f := sel_f[1]; */
+  // TODO get function f
+  f := GetExtractFunction(R);
   // extract
   X<[x]> := TwoGroupBelyiCurve(t);
+  /* assert SingularitiesNotTooBad(X); */
   phi := TwoGroupBelyiMap(t);
   denom := Denominator(f, X);
   numer := Numerator(f, X);
   assert Parent(denom) eq Parent(numer);
-  SetVerbose("Two", false);
   X<[x]> := ExtractRoot(X, f, 2);
+  /* assert SingularitiesNotTooBad(X); */
   KX<[x]> := FunctionField(X);
   phi := KX.1;
   // assign
