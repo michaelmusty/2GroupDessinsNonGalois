@@ -1,3 +1,9 @@
+/* TwoDB written from lists: #below = 1410, #above=13464 */
+
+/* TwoDB written at degree 64 */
+
+/* Time: 12853.720 */
+
 load "config.m";
 SetVerbose("Two", true);
 SetDebugOnError(true);
