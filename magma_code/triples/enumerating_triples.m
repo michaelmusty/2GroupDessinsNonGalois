@@ -44,9 +44,10 @@ intrinsic Extensions(sigma::SeqEnum[GrpPermElt]) -> Any
   l := Floor(Log(2,Degree(G)));
   assert 2^l eq d;
   // G-module with trivial action
-  triv := Matrix(GF(2), [[1]]);
-  trivs := [ triv : i in [1..3] ];
-  A := GModule(G, trivs);
+  /* triv := Matrix(GF(2), [[1]]); */
+  /* trivs := [ triv : i in [1..3] ]; */
+  /* A := GModule(G, trivs); */
+  A := TrivialModule(G, GF(2));
   // H^2
   CM := CohomologyModule(G, A);
   H2 := CohomologyGroup(CM, 2);
