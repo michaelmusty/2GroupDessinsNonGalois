@@ -65,7 +65,8 @@ intrinsic Extensions(sigma::SeqEnum[GrpPermElt]) -> Any
     assert Image(iotaE) eq Kernel(piE);
     assert Image(iotaE).1 in Center(E);
     block := PermutationToBlocks(Image(iotaE).1);
-    Append(~extensions, [* E, iotaE, piE , block *]);
+    /* Append(~extensions, [* E, iotaE, piE , block *]); */
+    Append(~extensions, [* E, iotaE, piE , block , h *]);
   end for;
   return extensions;
 end intrinsic;

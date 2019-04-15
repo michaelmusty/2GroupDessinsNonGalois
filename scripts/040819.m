@@ -15,15 +15,9 @@ function ConjugacyClassesOfTriple(wt, alpha)
 end function;
 
 // user input
-/* d := 4; */
-/* file := 2; */
-/* ext := 1; */
-/* d := 4; */
-/* file := 2; */
-/* ext := 2; */
-d := 4;
-file := 1;
-ext := 1;
+/* d := 4; file := 2; ext := 1; // 2,4,4 | ZZ/4 x ZZ/2 */
+d := 4; file := 2; ext := 2; // 2,4,4 | ZZ/8
+/* d := 4; file := 1; ext := 1; // 1,4,4 | ZZ/4 x ZZ/2 */
 
 printf "d=%o, file=%o, extension=%o\n", d, file, ext;
 
@@ -32,13 +26,19 @@ f := Filenames(d);
 s := ReadTwoDB(f[file]);
 Name(s);
 sigma := PermutationTriple(s);
+printf "sigma=%o\n", sigma;
+G := sub<Sym(d)|sigma>;
+assert G eq MonodromyGroup(s);
+printf "G = %o\n", TransitiveGroupDescription(G);
 extensions := Extensions(sigma);
 E := extensions[ext];
-TransitiveGroupDescription(E[1]);
+printf "E = %o\n", TransitiveGroupDescription(E[1]);
 wtG, iota, pi := Explode(E);
 alpha := Image(iota).1;
 assert alpha in Center(wtG);
 l := Lifts(E, sigma);
+E := wtG;
+printf "lifts=%o\n", l;
 Sd := SymmetricGroup(d);
 S2d := SymmetricGroup(2*d);
 
@@ -74,4 +74,4 @@ for wt in l_gens do
   #RefinedPassport(wt);
 end for;
 //exit
-exit;
+/* exit; */
