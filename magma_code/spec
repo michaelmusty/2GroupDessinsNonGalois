@@ -31,5 +31,6 @@
     enumerating_triples.m
     passports.m
     refined.m
+    representation_theory.m
   }
 }
