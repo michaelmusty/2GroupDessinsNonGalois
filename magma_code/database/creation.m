@@ -1,46 +1,87 @@
-intrinsic CreateTwoDB(galois_orbit::SeqEnum[SeqEnum[GrpPermElt]], blocks::SetIndx, path_number::RngIntElt) -> TwoDB
-  {Creates a TwoDB object corresponding to galois_orbit, blocks, and pathnumber.}
-  // stuff we need later
-    sigma := galois_orbit[1];
+intrinsic GenerateName(sigma::SeqEnum[GrpPermElt]) -> MonStgElt
+  {Generate a unique string identifying the passport corresponding to sigma.}
+  assert #sigma eq 3;
+  H := Parent(sigma[1]);
+  d := Degree(H);
+  G := sub<Sym(d)|sigma>;
+  assert IsTransitive(G);
+  a,b,c := Explode([Order(sigma[1]), Order(sigma[2]), Order(sigma[3])]);
+  if d gt 16 then
+    d, g := Explode(IdentifyGroup(G)); // small group identification
+    name := Sprintf("%oS%o-%o,%o,%o", d, g, a, b, c);
+  else
+    g, d := TransitiveGroupIdentification(G);
+    name := Sprintf("%oT%o-%o,%o,%o", d, g, a, b, c);
+  end if;
+  c0 := #CycleDecomposition(sigma[1]);
+  c1 := #CycleDecomposition(sigma[2]);
+  coo := #CycleDecomposition(sigma[3]);
+  genus := (d+2-c0-c1-coo)/2;
+  name *:= Sprintf("-g%o", genus);
+  name *:= Sprintf("-%o", Hash(sigma));
+  return name;
+end intrinsic;
+
+intrinsic Degree2Edges() -> Any
+  {}
+  degree1 := [Sym(1) | Id(Sym(1)), Id(Sym(1)), Id(Sym(1))];
+  degree2 := [];
+  Append(~degree2, [Sym(2)|Id(Sym(2)),(1,2),(1,2)]);
+  Append(~degree2, [Sym(2)|(1,2),Id(Sym(2)),(1,2)]);
+  Append(~degree2, [Sym(2)|(1,2),(1,2),Id(Sym(2))]);
+  degree2edges := [];
+  for sigma in degree2 do
+    e := CreateTwoEdge({@ 1,2 @}, sigma, degree1 : test_action := false);
+    Append(~degree2edges, e);
+  end for;
+  return degree2edges;
+end intrinsic;
+
+intrinsic Degree2TwoDBs() -> Any
+  {}
+  l := [];
+  edges := Degree2Edges();
+  for edge in edges do
+    Append(~l, CreateTwoDB([edge]));
+  end for;
+  return l;
+end intrinsic;
+
+intrinsic CreateTwoEdge(blocks::SetIndx, upstairs::SeqEnum[GrpPermElt], downstairs::SeqEnum[GrpPermElt] : test_action := true) -> TwoEdge
+  {}
+  s := TwoEdgeInitialize();
+  s`Blocks := blocks;
+  s`UpstairsTriple := upstairs;
+  s`DownstairsTriple := downstairs;
+  if test_action then
+    assert TestEdge(s); // test action on blocks matches input
+  end if;
+  return s;
+end intrinsic;
+
+intrinsic CreateTwoDB(edges::SeqEnum[TwoEdge]) -> TwoDB
+  {}
+  // initial creation of TwoDB
+    edge := edges[1];
+    sigma := UpstairsTriple(edge);
+    // stuff we need later
     d := Degree(Parent(sigma[1]));
     G := sub< Sym(d) | sigma >;
-  // directory stuff
-    assert In2GroupDessinRepository();
-    dir := GetCurrentDirectory();
-    db := dir cat "/TwoDB";
-    directory := Sprintf("%o/%o/", db, d);
-  // some sanity checks
-    for i in [1..#galois_orbit] do
-      sigma_test := galois_orbit[i];
-      assert #sigma_test eq 3;
-      assert Type(Parent(sigma_test[1])) eq GrpPerm;
-      d_test := Degree(Parent(sigma_test[1]));
-      G_test := sub< Sym(d) | sigma_test >;
-      assert IsTransitive(G_test);
-    end for;
-  // passport stuff
-    pass := PassportRepresentatives(sigma);
-    pointed_pass := PassportRepresentatives(sigma : Pointed := true);
-    refined_pass := RefinedPassport(sigma);
-  // create one object per galois_orbit
+    // some sanity checks
+    assert sigma[3]*sigma[2]*sigma[1] eq Id(G);
+    assert #sigma eq 3;
+    assert IsTransitive(G);
+    // create one object per galois_orbit
     s := TwoDBInitialize();
-  // generate name
-    newname := GenerateName(sigma);
-  // Name
-    s`Name := Sprintf("%o-path%o", newname, path_number); // path number is passed
-  // Filename
+    // Name
+    s`Name := GenerateName(sigma);
+    // Filename
     s`Filename := Name(s) cat ".m";
-  // Blocks
-    s`Blocks := blocks; // blocks are passed
-  // PassportName
-    s`PassportName := newname;
-  // PathNumber
-    s`PathNumber := path_number;
-  // Degree
+    // Degree
     s`Degree := d;
-  // Orders
+    // Orders
     s`Orders := [Order(sigma[i]) : i in {1..3}];
-  // Geometry
+    // Geometry
     a,b,c := Explode(Orders(s));
     if 1/a+1/b+1/c gt 1 then
       s`Geometry := "Spherical";
@@ -49,49 +90,29 @@ intrinsic CreateTwoDB(galois_orbit::SeqEnum[SeqEnum[GrpPermElt]], blocks::SetInd
     else
       s`Geometry := "Hyperbolic";
     end if;
-  // Genus
+    // Genus
     c0 := #CycleDecomposition(sigma[1]);
     c1 := #CycleDecomposition(sigma[2]);
     coo := #CycleDecomposition(sigma[3]);
     genus := (d+2-c0-c1-coo)/2;
     s`Genus := genus;
-  // GaloisOrbitSize
-    s`GaloisOrbitSize := #galois_orbit;
-  // PassportSize
-    s`PassportSize := #pass;
-  // PointedPassportSize
-    s`PointedPassportSize := #pointed_pass;
-  // RefinedPassportSize
-    s`RefinedPassportSize := #refined_pass;
-  // Level
+    // Level
     floor := Floor(Log(d)/Log(2));
     ceil := Ceiling(Log(d)/Log(2));
     assert floor eq ceil;
     s`Level := floor;
-  // PermutationTriple
+    // PermutationTriple
     s`PermutationTriple := sigma;
-  // GaloisOrbit
-    s`GaloisOrbit := galois_orbit;
-  // Passport
-    s`Passport := pass;
-  // PointedPassport
-    s`PointedPassport := pointed_pass;
-  // RefinedPassport
-    s`RefinedPassport := refined_pass;
-  // MonodromyGroup
+    // MonodromyGroup
     s`MonodromyGroup := G;
-  // AutomorphismGroups
-    if s`Geometry eq "Hyperbolic" then
-      s`AutomorphismGroup := AutomorphismGroup(sigma);
-      s`PointedAutomorphismGroup := PointedAutomorphismGroup(sigma);
-    end if;
-  // (DO NOT) write the object to file
-  /*
-    ChangeDirectory(dbdirectory);
-    SolvableDBWriteObject(s);
-    returnText := Sprintf("SolvableDBObject file for %o written in directory %o\n", s`SolvableDBName, directory, d);
-    ChangeDirectory(dbdirectory);
-    return returnText;
-  */
+    // AutomorphismGroups
+    // s`AutomorphismGroup := AutomorphismGroup(sigma);
+    // s`PointedAutomorphismGroup := PointedAutomorphismGroup(sigma);
+  // EDGES
+    for i := 1 to #edges do
+      e := edges[i];
+      e`UpstairsTwoDB := s;
+    end for;
+    s`Edges := edges;
   return s;
 end intrinsic;
