@@ -230,6 +230,7 @@ intrinsic MergeTwoDBs(l::SeqEnum[TwoDB]) -> Any
   l_new := [];
   i := 1;
   while i le #l do
+    t0 := Cputime();
     l_new[i] := l[i];
     for j := #l to i+1 by -1 do
       if IsIsomorphic(l_new[i], l[j]) then
@@ -237,6 +238,8 @@ intrinsic MergeTwoDBs(l::SeqEnum[TwoDB]) -> Any
         Remove(~l, j);
       end if;
     end for;
+    t1 := Cputime();
+    printf "i=%o out of %o : %o s\n", i, #l, t1-t0;
     i +:= 1;
   end while;
   return l_new;

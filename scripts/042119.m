@@ -53,13 +53,21 @@ time l64 := MergeTwoDBs(l64);
 
 // degree 128 
 l128 := [];
-for s in l128 do
+for s in l64 do
   printf "%o out of %o : ", Index(l64, s), #l64;
   time l128 cat:= TwoDBToLifts(s);
 end for;
 printf "merge : ";
 time l128 := MergeTwoDBs(l128);
 
+// degree 256
+l256 := [];
+for s in l128 do
+  printf "%o out of %o : ", Index(l128 , s), #l128;
+  time l256 cat:= TwoDBToLifts(s);
+end for;
+printf "merge : ";
+time l256 := MergeTwoDBs(l256);
 
 
 t1 := Cputime();
@@ -72,6 +80,7 @@ printf "\n\nTotal Time : %o\n\n", t1-t0;
 #l32;
 #l64;
 #l128;
+#l256;
 
 
 /* exts := Extensions(downstairs); */
