@@ -209,11 +209,11 @@ intrinsic TwoDBToLifts(s::TwoDB) -> SeqEnum[TwoDB]
   // sanity check : just for experimenting...
   // can two lifts from the same triple but different extensions
   // have isomorphic triples upstairs
-  for i := 1 to #edges-1 do
-    for j := i+1 to #edges do
-      assert not IsIsomorphic(edges[i], edges[j]);
-    end for;
-  end for;
+  /* for i := 1 to #edges-1 do */
+  /*   for j := i+1 to #edges do */
+  /*     assert not IsIsomorphic(edges[i], edges[j]); */
+  /*   end for; */
+  /* end for; */
   return objs;
 end intrinsic;
 

@@ -12,7 +12,7 @@ intrinsic In2GroupDessinRepository() -> BoolElt
 end intrinsic;
 
 intrinsic GetInfo(filename::MonStgElt) -> List
-  {without reading in the file, returns [* degree, group, [a,b,c], genus, triplehash *].}
+  {without reading in the file, returns [* degree, group, [a,b,c], genus, path# *].}
   assert In2GroupDessinRepository();
   // degree and group
   raw := Split(filename, "-");
@@ -36,12 +36,14 @@ intrinsic GetInfo(filename::MonStgElt) -> List
   // assert #genus_str eq 1;
   // genus := StringToInteger(genus_str[1]);
   genus := StringToInteger(genus_str[#genus_str]);
-  // hash of triple
-  triplehash_str := raw[4];
-  triplehash_num := Split(triplehash_str, ".")[1];
-  triplehash := StringToInteger(triplehash_num);
+  // path
+  path_str := Split(raw[4], "path");
+  path_str := path_str[#path_str];
+  // assert #path_str eq 1;
+  path_num := Split(path_str[1], ".")[1];
+  path := StringToInteger(path_num);
   // return
-  return [* degree, group, orders, genus, triplehash *];
+  return [* degree, group, orders, genus, path *];
 end intrinsic;
 
 intrinsic GetPassportNameFromFile(filename::MonStgElt) -> MonStgElt
