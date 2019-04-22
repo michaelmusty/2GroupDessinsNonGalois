@@ -22,6 +22,11 @@ intrinsic GenerateName(sigma::SeqEnum[GrpPermElt]) -> MonStgElt
   return name;
 end intrinsic;
 
+intrinsic GenerateFilename(sigma::SeqEnum[GrpPermElt]) -> MonStgElt
+  {}
+  return GenerateName(sigma) cat ".m";
+end intrinsic;
+
 intrinsic Degree2Edges() -> Any
   {}
   degree1 := [Sym(1) | Id(Sym(1)), Id(Sym(1)), Id(Sym(1))];
@@ -52,7 +57,9 @@ intrinsic CreateTwoEdge(blocks::SetIndx, upstairs::SeqEnum[GrpPermElt], downstai
   s := TwoEdgeInitialize();
   s`Blocks := blocks;
   s`UpstairsTriple := upstairs;
+  s`UpstairsFilename := GenerateFilename(upstairs);
   s`DownstairsTriple := downstairs;
+  s`DownstairsFilename := GenerateFilename(downstairs);
   if test_action then
     assert TestEdge(s); // test action on blocks matches input
   end if;
@@ -76,7 +83,7 @@ intrinsic CreateTwoDB(edges::SeqEnum[TwoEdge]) -> TwoDB
     // Name
     s`Name := GenerateName(sigma);
     // Filename
-    s`Filename := Name(s) cat ".m";
+    s`Filename := GenerateFilename(sigma);
     // Degree
     s`Degree := d;
     // Orders
@@ -109,10 +116,6 @@ intrinsic CreateTwoDB(edges::SeqEnum[TwoEdge]) -> TwoDB
     // s`AutomorphismGroup := AutomorphismGroup(sigma);
     // s`PointedAutomorphismGroup := PointedAutomorphismGroup(sigma);
   // EDGES
-    for i := 1 to #edges do
-      e := edges[i];
-      e`UpstairsTwoDB := s;
-    end for;
     s`Edges := edges;
   return s;
 end intrinsic;

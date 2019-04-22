@@ -196,10 +196,11 @@ intrinsic TwoDBToLifts(s::TwoDB) -> SeqEnum[TwoDB]
   for extension in extensions do
     edges cat:= EdgesFromExtension(extension, sigma);
   end for;
-  // all objects created this way should have input s as their DownstairsTwoDB for all edges
+  // all objects created this way should have PermutationTriple(s) as their downstairs triple
   for i := 1 to #edges do
     edge := edges[i];
-    edge`DownstairsTwoDB := s;
+    assert DownstairsTriple(edge) eq sigma;
+    assert DownstairsFilename(edge) eq GenerateFilename(sigma);
   end for;
   // all edges should get corresponding TwoDB with single edge
   objs := [];
@@ -239,10 +240,43 @@ intrinsic MergeTwoDBs(l::SeqEnum[TwoDB]) -> Any
       end if;
     end for;
     t1 := Cputime();
-    printf "i=%o out of %o : %o s\n", i, #l, t1-t0;
+    vprintf TwoDB : "merge i=%o out of %o : %o s\n", i, #l, t1-t0;
     i +:= 1;
   end while;
   return l_new;
+end intrinsic;
+
+intrinsic ComputeTwoDBAtDegree(d::RngIntElt) -> Any
+  {}
+  t_start := Cputime();
+  d_below := d div 2;
+  filenames_below := Filenames(d_below);
+  objs_below := [ReadTwoDB(filename_below) : filename_below in filenames_below];
+  objs_init := [];
+  for i := 1 to #objs_below do
+    t0 := Cputime();
+    s_below := objs_below[i];
+    l := TwoDBToLifts(s_below);
+    t1 := Cputime();
+    vprintf TwoDB : "i=%o out of %o : %o s\n", i, #objs_below, t1-t0;
+    objs_init cat:= l;
+  end for;
+  objs := MergeTwoDBs(objs_init);
+  t_end := Cputime();
+  vprintf TwoDB : "Degree %o:\n", d;
+  vprintf TwoDB : "%o triples reduced to %o isomorphism classes\n", #objs_init, #objs;
+  vprintf TwoDB : "Total time = %o s\n", t_end-t_start;
+  return objs;
+end intrinsic;
+
+intrinsic WriteTwoDBAtDegree(d::RngIntElt) -> Any
+  {}
+  objs := ComputeTwoDBAtDegree(d);
+  for s in objs do
+    WriteTwoDB(s);
+  end for;
+  objs_test := [ReadTwoDB(f) : f in Filenames(d)];
+  return Sprintf("TwoDB written at degree %o", d);
 end intrinsic;
 
 /* intrinsic CycleStructures(triple::SeqEnum[GrpPermElt]) -> SeqEnum */

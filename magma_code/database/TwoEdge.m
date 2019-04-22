@@ -2,16 +2,24 @@ declare type TwoEdge;
 declare attributes TwoEdge:
     Blocks,
     UpstairsTriple,
-    UpstairsTwoDB,
+    UpstairsFilename,
     DownstairsTriple,
-    DownstairsTwoDB;
+    DownstairsFilename;
 
-intrinsic Print(s::TwoEdge)
+intrinsic Print(s::TwoEdge, level::MonStgElt)
   {Print TwoEdge}
-  printf "Edge: %o --> %o\n", GenerateName(UpstairsTriple(s)), GenerateName(DownstairsTriple(s));
-  printf "UpstairsTriple:\n%o\n", UpstairsTriple(s);
-  printf "DownstairsTriple:\n%o\n", DownstairsTriple(s);
-  printf "Blocks: \n%o", Blocks(s);
+  if level in ["Default", "Minimal"] then
+    printf "Edge: %o --> %o", GenerateName(UpstairsTriple(s)), GenerateName(DownstairsTriple(s));
+  elif level in ["Maximal"] then
+    printf "Edge: %o --> %o\n", GenerateName(UpstairsTriple(s)), GenerateName(DownstairsTriple(s));
+    printf "UpstairsTriple:\n%o\n", UpstairsTriple(s);
+    printf "DownstairsTriple:\n%o\n", DownstairsTriple(s);
+    printf "Blocks: \n%o", Blocks(s);
+  elif level in ["Magma"] then
+    error "not implemented!";
+  else
+    error "not a valid printing level!";
+  end if;
 end intrinsic;
 
 intrinsic Copy(s::TwoEdge) -> TwoEdge
@@ -48,9 +56,9 @@ intrinsic UpstairsTriple(s::TwoEdge) -> Any
   return s`UpstairsTriple;
 end intrinsic;
 
-intrinsic UpstairsTwoDB(s::TwoEdge) -> TwoDB
+intrinsic UpstairsFilename(s::TwoEdge) -> MonStgElt
   {}
-  return s`UpstairsTwoDB;
+  return s`UpstairsFilename;
 end intrinsic;
 
 intrinsic DownstairsTriple(s::TwoEdge) -> Any
@@ -58,9 +66,9 @@ intrinsic DownstairsTriple(s::TwoEdge) -> Any
   return s`DownstairsTriple;
 end intrinsic;
 
-intrinsic DownstairsTwoDB(s::TwoEdge) -> TwoDB
+intrinsic DownstairsFilename(s::TwoEdge) -> MonStgElt
   {}
-  return s`DownstairsTwoDB;
+  return s`DownstairsFilename;
 end intrinsic;
 
 /* functions for testing induced action on blocks */

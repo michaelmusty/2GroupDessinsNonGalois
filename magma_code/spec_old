@@ -1,0 +1,36 @@
+{
+  database
+  {
+    TwoDB.m
+    read_write.m
+    creation.m
+  }
+  maps
+  {
+    degree2.m
+    compute_belyi_map.m
+    analyze_divisors.m
+    base_change.m
+  }
+  misc
+  {
+    text_processing.m
+  }
+  reduction
+  {
+    reduce_mod_p.m
+  }
+  tests
+  {
+    sanity_check.m
+    galois_group_sanity_check.m
+  }
+  triples
+  {
+    auts.m
+    enumerating_galmaps.m
+    passports.m
+    refined.m
+    representation_theory.m
+  }
+}

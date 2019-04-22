@@ -102,13 +102,36 @@ intrinsic WriteText(s::TwoDB) -> MonStgElt
   // always make an instance of the object
     str *:= "s := TwoDBInitialize();\n";
   // easy (automatic) magma printing
-    easy := AssignedAttributes(s);
+    easy := [];
+    Append(~easy, "Name");
+    Append(~easy, "Filename");
+    Append(~easy, "Degree");
+    Append(~easy, "Orders");
+    Append(~easy, "Geometry");
+    Append(~easy, "Genus");
+    Append(~easy, "Level");
+    Append(~easy, "PermutationTriple");
+    Append(~easy, "MonodromyGroup");
     str *:= "\n/*\nMagma printing\n*/\n\n";
     for attr in easy do
       if assigned s``attr then
         str *:= Sprintf("s`%o := ", attr);
         str *:= Sprintf("%m;\n", s``attr);
       end if;
+    end for;
+  // edges
+    str *:= "\n/*\nEdge printing\n*/\n\n";
+    assert assigned s`Edges;
+    assert #s`Edges ge 1;
+    str *:= Sprintf("s`Edges := [];\n");
+    for i := 1 to #s`Edges do
+      str *:= Sprintf("edge%o := TwoEdgeInitialize();\n", i);
+      str *:= Sprintf("edge%o`Blocks := %m;\n", i, s`Edges[i]`Blocks);
+      str *:= Sprintf("edge%o`UpstairsTriple := %m;\n", i, s`Edges[i]`UpstairsTriple);
+      str *:= Sprintf("edge%o`UpstairsFilename := %m;\n", i, s`Edges[i]`UpstairsFilename);
+      str *:= Sprintf("edge%o`DownstairsTriple := %m;\n", i, s`Edges[i]`DownstairsTriple);
+      str *:= Sprintf("edge%o`DownstairsFilename := %m;\n", i, s`Edges[i]`DownstairsFilename);
+      str *:= Sprintf("Append(~s`Edges, edge%o);\n", i);
     end for;
   // return
     str *:= "\n/*\nReturn for eval\n*/\n\n";
@@ -127,6 +150,6 @@ intrinsic WriteTwoDB(s::TwoDB) -> MonStgElt
   savedir := Sprintf(dir cat "/TwoDB/%o/%o", Degree(s), Filename(s));
   str := WriteText(s);
   Write(savedir, str : Overwrite := true);
-  returnText := Sprintf("%o written in directory %o/TwoDB/%o\n", Filename(s), GetCurrentDirectory(), Degree(s));
+  returnText := Sprintf("%o written in directory %o/TwoDB/%o", Filename(s), GetCurrentDirectory(), Degree(s));
   return returnText;
 end intrinsic;

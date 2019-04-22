@@ -9,7 +9,6 @@ declare attributes TwoDB:
     Geometry,
     Genus,
     Level,
-  // permutation attributes
     PermutationTriple,
     MonodromyGroup,
   // edges
