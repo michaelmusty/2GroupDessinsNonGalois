@@ -23,6 +23,7 @@
   {
     auts.m
     enumerating_galmaps.m
+    enumerating_passports.m
     passports.m
     refined.m
     representation_theory.m
