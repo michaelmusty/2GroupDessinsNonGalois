@@ -271,6 +271,12 @@ intrinsic MergeTwoDBs(l::SeqEnum[TwoDB]) -> Any
   return l_new;
 end intrinsic;
 
+intrinsic CycleStructures(triple::SeqEnum[GrpPermElt]) -> SeqEnum
+  {returns sequence of 3 cycle structures for triple.}
+  assert #triple eq 3;
+  return [ CycleStructure(triple[i]) : i in [1..3] ];
+end intrinsic;
+
 intrinsic ComputeTwoDBAtDegree(d::RngIntElt) -> Any
   {}
   t_start := Cputime();
@@ -286,7 +292,9 @@ intrinsic ComputeTwoDBAtDegree(d::RngIntElt) -> Any
     vprintf TwoDB : "i=%o out of %o : %o s\n", i, #objs_below, t1-t0;
     objs_init cat:= l;
   end for;
+  // sort objects by cycle structure
   objs := MergeTwoDBs(objs_init);
+  cycle_structures := [CycleStructures(PermutationTriple(s)) : s in objs];
   t_end := Cputime();
   vprintf TwoDB : "Degree %o:\n", d;
   vprintf TwoDB : "%o triples reduced to %o isomorphism classes\n", #objs_init, #objs;
@@ -303,12 +311,6 @@ intrinsic WriteTwoDBAtDegree(d::RngIntElt) -> Any
   objs_test := [ReadTwoDB(f) : f in Filenames(d)];
   return Sprintf("TwoDB written at degree %o", d);
 end intrinsic;
-
-/* intrinsic CycleStructures(triple::SeqEnum[GrpPermElt]) -> SeqEnum */
-  /* {returns sequence of 3 cycle structures for triple.} */
-  /* assert #triple eq 3; */
-  /* return [ CycleStructure(triple[i]) : i in [1..3] ]; */
-/* end intrinsic; */
 
 /* intrinsic ExtensionToTriples(extension::List, below::SeqEnum[GrpPermElt]) -> Any */
   /* {Lift the triple below of G to a triple of E via the extension 1->A->E->G->1.} */
