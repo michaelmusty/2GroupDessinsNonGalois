@@ -265,7 +265,7 @@ intrinsic MergeTwoDBs(l::SeqEnum[TwoDB]) -> Any
       end if;
     end for;
     t1 := Cputime();
-    vprintf TwoDB : "merge i=%o out of %o : %o s\n", i, #l, t1-t0;
+    /* vprintf TwoDB : "merge i=%o out of %o : %o s\n", i, #l, t1-t0; */
     i +:= 1;
   end while;
   return l_new;
@@ -275,6 +275,22 @@ intrinsic CycleStructures(triple::SeqEnum[GrpPermElt]) -> SeqEnum
   {returns sequence of 3 cycle structures for triple.}
   assert #triple eq 3;
   return [ CycleStructure(triple[i]) : i in [1..3] ];
+end intrinsic;
+
+intrinsic PartitionByCycleStructure(objs::SeqEnum[TwoDB]) -> SeqEnum[SeqEnum[TwoDB]]
+  {}
+  cycle_structures := [CycleStructures(PermutationTriple(s)) : s in objs];
+  ParallelSort(~cycle_structures, ~objs);
+  l := [[objs[1]]];
+  for i := 2 to #objs do
+    assert CycleStructures(PermutationTriple(objs[i])) eq cycle_structures[i];
+    if cycle_structures[i] eq CycleStructures(PermutationTriple(l[#l][1])) then
+      Append(~l[#l], objs[i]);
+    else
+      Append(~l, [objs[i]]);
+    end if;
+  end for;
+  return l;
 end intrinsic;
 
 intrinsic ComputeTwoDBAtDegree(d::RngIntElt) -> Any
@@ -293,8 +309,15 @@ intrinsic ComputeTwoDBAtDegree(d::RngIntElt) -> Any
     objs_init cat:= l;
   end for;
   // sort objects by cycle structure
-  objs := MergeTwoDBs(objs_init);
-  cycle_structures := [CycleStructures(PermutationTriple(s)) : s in objs];
+  objs_partitioned := PartitionByCycleStructure(objs_init);
+  objs := [];
+  for i := 1 to #objs_partitioned do
+    vprintf TwoDB : "list %o out of %o with %o triples\n", i, #objs_partitioned, #objs_partitioned[i];
+    t_iso_start := Cputime();
+    objs cat:= MergeTwoDBs(objs_partitioned[i]);
+    t_iso_end := Cputime();
+    vprintf TwoDB : "done : %o s\n", t_iso_end-t_iso_start;
+  end for;
   t_end := Cputime();
   vprintf TwoDB : "Degree %o:\n", d;
   vprintf TwoDB : "%o triples reduced to %o isomorphism classes\n", #objs_init, #objs;
