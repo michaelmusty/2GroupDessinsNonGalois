@@ -17,6 +17,98 @@ intrinsic GetDegreeGroupLimitAtDegree(d::RngIntElt) -> RngIntElt
   return max;
 end intrinsic;
 
+intrinsic GetGroupPossibilitiesAtDegree(d::RngIntElt) -> SeqEnum[RngIntElt]
+  {}
+  objs := GetObjectsAtDegree(d);
+  groups := [];
+  for s in objs do
+    info := GetInfo(Filename(s));
+    assert info[1] eq d;
+    Append(~groups, info[2]);
+  end for;
+  return Sort(SetToSequence(SequenceToSet(groups)));
+end intrinsic;
+
+intrinsic GetOrdersPossibilitiesAtDegree(d::RngIntElt) -> SeqEnum[SeqEnum[RngIntElt]]
+  {order matters}
+  objs := GetObjectsAtDegree(d);
+  orders := [];
+  for s in objs do
+    info := GetInfo(Filename(s));
+    assert info[1] eq d;
+    Append(~orders, info[3]);
+  end for;
+  return Sort(SetToSequence(SequenceToSet(orders)));
+end intrinsic;
+
+intrinsic GetLaxOrdersPossibilitiesAtDegree(d::RngIntElt) -> SeqEnum[SeqEnum[RngIntElt]]
+  {order does not matter}
+  objs := GetObjectsAtDegree(d);
+  orders := [];
+  for s in objs do
+    info := GetInfo(Filename(s));
+    assert info[1] eq d;
+    Append(~orders, Sort(info[3]));
+  end for;
+  return Sort(SetToSequence(SequenceToSet(orders)));
+end intrinsic;
+
+/* all at once */
+
+intrinsic GetPassports(d::RngIntElt : lax := false) -> Any
+  {}
+  possible_groups := GetGroupPossibilitiesAtDegree(d);
+  if lax then
+    possible_orders := GetLaxOrdersPossibilitiesAtDegree(d);
+  else
+    possible_orders := GetOrdersPossibilitiesAtDegree(d);
+  end if;
+  objs := GetObjectsAtDegree(d);
+  passports := AssociativeArray();
+  // initialize AA
+  for g in possible_groups do
+    for orders in possible_orders do
+      passports[[d, g] cat orders] := [];
+    end for;
+  end for;
+  // populate AA
+  for s in objs do
+    info := GetInfo(Filename(s));
+    assert info[1] eq d;
+    g := info[2];
+    orders := info[3];
+    if lax then
+      Append(~passports[[d, g] cat Sort(orders)], s);
+    else
+      Append(~passports[[d, g] cat orders], s);
+    end if;
+  end for;
+  // only nonempty
+  nonempty_passports := AssociativeArray();
+  for key in Keys(passports) do
+    if #passports[key] gt 0 then
+      nonempty_passports[key] := passports[key];
+    end if;
+  end for;
+  return nonempty_passports, SetToSequence(Keys(nonempty_passports));
+end intrinsic;
+
+intrinsic PrintPassports(passports::Assoc) -> Any
+  {}
+  keys := Keys(passports);
+  for key in keys do
+    d := key[1];
+    g := key[2];
+    orders := key[3..5];
+    printf "d=%o, group=%o, abc=%o:\n", d, g, orders;
+    printf "%o\n\n", passports[key];
+  end for;
+  d := Random(keys)[1];
+  return Sprintf("printed passports of degree %o", d);
+end intrinsic;
+
+/* if you just want one thing */
+
 intrinsic GetObjectsWithOrders(d::RngIntElt, orders::SeqEnum[RngIntElt] : order_matters := true) -> Any
   {}
   assert #orders eq 3;
@@ -26,7 +118,7 @@ intrinsic GetObjectsWithOrders(d::RngIntElt, orders::SeqEnum[RngIntElt] : order_
     if order_matters then
       test := Orders(s) eq orders;
     else
-      test := SequenceToSet(Orders(s)) eq SequenceToSet(orders);
+      test := Sort(Orders(s)) eq Sort(orders);
     end if;
     if test then
       Append(~objs_with_orders, s);
@@ -47,7 +139,7 @@ intrinsic GetObjectsWithPassport(degreegroup::SeqEnum[RngIntElt], orders::SeqEnu
       if order_matters then
         test := Orders(s) eq orders;
       else
-        test := SequenceToSet(Orders(s)) eq SequenceToSet(orders);
+        test := Sort(Orders(s)) eq Sort(orders);
       end if;
       if test then
         Append(~return_objs, s);
@@ -70,69 +162,4 @@ intrinsic GetObjectsWithGroup(degreegroup::SeqEnum[RngIntElt]) -> Any
     end if;
   end for;
   return return_objs;
-end intrinsic;
-
-intrinsic GetPassportsWithGroup(degreegroup::SeqEnum[RngIntElt]) -> Any
-  {order matters}
-  objs := GetObjectsWithGroup(degreegroup);
-  if #objs eq 0 then
-    return [];
-  end if;
-  orders := [Orders(s) : s in objs];
-  ParallelSort(~orders, ~objs);
-  passports := [];
-  Append(~passports, [objs[1]]);
-  for i := 2 to #objs do
-    s_new := objs[i];
-    s_old := passports[#passports][1];
-    if Orders(s_new) eq Orders(s_old) then // same passport
-      Append(~passports[#passports], s_new);
-    else
-      Append(~passports, [s_new]);
-    end if;
-  end for;
-  return passports;
-end intrinsic;
-
-intrinsic GetLaxPassportsWithGroup(degreegroup::SeqEnum[RngIntElt]) -> Any
-  {order does not matter}
-  objs := GetObjectsWithGroup(degreegroup);
-  if #objs eq 0 then
-    return [];
-  end if;
-  orders := [Orders(s) : s in objs];
-  ParallelSort(~orders, ~objs);
-  passports := [];
-  Append(~passports, [objs[1]]);
-  for i := 2 to #objs do
-    s_new := objs[i];
-    s_old := passports[#passports][1];
-    if SequenceToSet(Orders(s_new)) eq SequenceToSet(Orders(s_old)) then // same passport
-      Append(~passports[#passports], s_new);
-    else
-      Append(~passports, [s_new]);
-    end if;
-  end for;
-  return passports;
-end intrinsic;
-
-intrinsic GetPassports(d::RngIntElt) -> Any
-  {}
-  objs := GetObjectsAtDegree(d);
-  passports := [];
-  max_g := GetDegreeGroupLimitAtDegree(d);
-  for g := 1 to max_g do
-    passports cat:= GetPassportsWithGroup([d, g]);
-  end for;
-  return passports;
-end intrinsic;
-
-intrinsic GetLaxPassports(d::RngIntElt) -> Any
-  {}
-  passports := [];
-  max_g := GetDegreeGroupLimitAtDegree(d);
-  for g := 1 to max_g do
-    passports cat:= GetLaxPassportsWithGroup([d, g]);
-  end for;
-  return passports;
 end intrinsic;

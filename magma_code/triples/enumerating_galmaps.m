@@ -33,6 +33,34 @@ intrinsic PermutationToBlocks(perm::GrpPermElt) -> SetIndx
   return CodeToBlocks(PermutationToCode(perm));
 end intrinsic;
 
+intrinsic DistinguishedInvolution(d::RngIntElt) -> GrpPermElt
+  {For n ge 2, returns tau identifying 2^n sheets to 2^(n-1) sheets}
+  n := Round(Log(d)/Log(2));
+  assert n gt 1;
+  S := Sym(2^n);
+  tau := Id(S);
+  for i in [1..2^(n-1)] do
+    tau := tau*S!(i,i+2^(n-1));
+  end for;
+  return tau;
+end intrinsic;
+
+intrinsic ConjugateExtension(extension::List) -> List
+  {}
+  E, iotaE, piE, blocks, h := Explode(extension);
+  d := Degree(Generic(E));
+  alpha := DistinguishedInvolution(d);
+  _, rho := IsConjugate(Sym(d), Image(iotaE).1, alpha);
+  Econj := Conjugate(E, rho);
+  assert alpha in Econj;
+  _, EtoEconj := IsIsomorphic(E, Econj);
+  // sanity checks
+  sigma := [E.1, E.2, E.3];
+  sigmap := [Econj.1, Econj.2, Econj.3];
+  assert IsConjugate(Sym(d), sigma, sigmap);
+  return [* Econj, iotaE*EtoEconj, EtoEconj^(-1)*piE, PermutationToBlocks(alpha) *];
+end intrinsic;
+
 intrinsic Extensions(sigma::SeqEnum[GrpPermElt]) -> Any
   {Let A be the trivial G-module for sigma. Computes H^2(G, A) and returns list of extensions 1->A->E->G->1.}
   // setup
@@ -56,17 +84,14 @@ intrinsic Extensions(sigma::SeqEnum[GrpPermElt]) -> Any
   distinct_extensions := [];
   for h in H2 do
     E_fp, pi_fp, iota_fp := Extension(CM, h);
-    // Append(~distinct_extensions, E_fp);
-    // ct := CosetTable(E_fp, sub<E_fp|Id(E_fp)>);
-    // iso, E := CosetTableToRepresentation(E_fp, ct);
     iso, E, K := CosetAction(E_fp, sub<E_fp|Id(E_fp)>);
     iotaE := iota_fp*iso;
     piE := (iso^-1)*pi_fp;
     assert Image(iotaE) eq Kernel(piE);
     assert Image(iotaE).1 in Center(E);
-    block := PermutationToBlocks(Image(iotaE).1);
-    /* Append(~extensions, [* E, iotaE, piE , block *]); */
-    Append(~extensions, [* E, iotaE, piE , block , h *]);
+    blocks := PermutationToBlocks(Image(iotaE).1);
+    /* Append(~extensions, [* E, iotaE, piE , blocks *]); */
+    Append(~extensions, [* E, iotaE, piE , blocks , h *]);
   end for;
   return extensions;
 end intrinsic;
