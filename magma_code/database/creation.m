@@ -6,7 +6,10 @@ intrinsic GenerateName(sigma::SeqEnum[GrpPermElt]) -> MonStgElt
   G := sub<Sym(d)|sigma>;
   assert IsTransitive(G);
   a,b,c := Explode([Order(sigma[1]), Order(sigma[2]), Order(sigma[3])]);
-  if d gt 16 then
+  if d gt 256 then // too big to IdentifyGroup
+    g := Hash(sigma);
+    name := Sprintf("%oS%o-%o,%o,%o", d, g, a, b, c);
+  elif d gt 16 then
     d, g := Explode(IdentifyGroup(G)); // small group identification
     name := Sprintf("%oS%o-%o,%o,%o", d, g, a, b, c);
   else

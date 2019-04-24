@@ -243,10 +243,12 @@ intrinsic TwoDBToLifts(s::TwoDB) -> SeqEnum[TwoDB]
   return objs;
 end intrinsic;
 
-intrinsic MergeLeft(s::TwoDB, t::TwoDB) -> Any
+intrinsic MergeLeft(s::TwoDB, t::TwoDB : verify_isomorphic := true) -> Any
   {}
   new := Copy(s);
-  assert IsIsomorphic(s, t);
+  if verify_isomorphic then
+    assert IsIsomorphic(s, t);
+  end if;
   new`Edges cat:= Edges(t);
   return new;
 end intrinsic;
@@ -260,7 +262,7 @@ intrinsic MergeTwoDBs(l::SeqEnum[TwoDB]) -> Any
     l_new[i] := l[i];
     for j := #l to i+1 by -1 do
       if IsIsomorphic(l_new[i], l[j]) then
-        l_new[i] := MergeLeft(l_new[i], l[j]);
+        l_new[i] := MergeLeft(l_new[i], l[j] : verify_isomorphic := false);
         Remove(~l, j);
       end if;
     end for;
