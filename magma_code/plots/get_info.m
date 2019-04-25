@@ -1,15 +1,19 @@
-intrinsic MakeCSVFile(filename::MonStgElt) -> MonStgElt
+intrinsic MakeCSVFile() -> MonStgElt
   {}
+  filename := "genus_up_to_d256.csv";
   str := Sprintf("dist\n");
-  str := Sprintf("0\n"); // for degree 1
-  for d in [2,4,8,16,32,64,128] do
+  str *:= Sprintf("0\n"); // for degree 1
+  for d in [2,4,8,16,32,64,128,256] do
     printf "d=%o : ", d;
-    time objs := GetObjectsAtDegree(d);
-    for s in objs do
-      str *:= Sprintf("%o\n", Genus(s));
+    /* time objs := GetObjectsAtDegree(d); */
+    f := Filenames(d);
+    for i := 1 to #f do
+      _,group,abc,genus,hash := Explode(GetInfo(f[i]));
+      str *:= Sprintf("%o\n", genus);
     end for;
+    printf "\n";
   end for;
-  savedir := Sprintf("%o" cat "/filename", GetCurrentDirectory());
+  savedir := Sprintf("%o" cat "/%o", GetCurrentDirectory(), filename);
   Write(savedir, str : Overwrite := true);
   return_text := Sprintf("%o saved in %o", filename, GetCurrentDirectory());
   return return_text;
@@ -27,6 +31,7 @@ intrinsic GeometryTypes(d::RngIntElt) -> Any
       Append(~nonhyperbolic, s);
     end if;
   end for;
+  printf "#non=%o, #hyp=%o\n", #nonhyperbolic, #hyperbolic;
   return nonhyperbolic, hyperbolic;
 end intrinsic;
 
@@ -62,6 +67,7 @@ intrinsic GroupTypes(d::RngIntElt) -> Any
       Append(~nonabelian, s);
     end if;
   end for;
+  printf "#abelian=%o, #non=%o\n", #abelian, #nonabelian;
   return abelian, nonabelian;
 end intrinsic;
 
