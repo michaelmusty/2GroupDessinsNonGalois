@@ -29,12 +29,15 @@ intrinsic GetGroupPossibilitiesAtDegree(d::RngIntElt) -> SeqEnum[RngIntElt]
   return Sort(SetToSequence(SequenceToSet(groups)));
 end intrinsic;
 
+/* just use filenames */
+
 intrinsic GetOrdersPossibilitiesAtDegree(d::RngIntElt) -> SeqEnum[SeqEnum[RngIntElt]]
   {order matters}
-  objs := GetObjectsAtDegree(d);
+  /* objs := GetObjectsAtDegree(d); */
+  f := Filenames(d);
   orders := [];
-  for s in objs do
-    info := GetInfo(Filename(s));
+  for s in f do
+    info := GetInfo(s);
     assert info[1] eq d;
     Append(~orders, info[3]);
   end for;
@@ -43,14 +46,68 @@ end intrinsic;
 
 intrinsic GetLaxOrdersPossibilitiesAtDegree(d::RngIntElt) -> SeqEnum[SeqEnum[RngIntElt]]
   {order does not matter}
-  objs := GetObjectsAtDegree(d);
+  /* objs := GetObjectsAtDegree(d); */
+  f := Filenames(d);
   orders := [];
-  for s in objs do
-    info := GetInfo(Filename(s));
+  for s in f do
+    info := GetInfo(s);
     assert info[1] eq d;
     Append(~orders, Sort(info[3]));
   end for;
   return Sort(SetToSequence(SequenceToSet(orders)));
+end intrinsic;
+
+intrinsic GetLaxOrdersOfInterest() -> Any
+  {}
+  lax := [[1,1,1]];
+  for d in [2,4,8,16,32,64,128,256] do
+    lax cat:= GetLaxOrdersPossibilitiesAtDegree(d);
+  end for;
+  return Sort(SetToSequence(SequenceToSet(lax)));
+end intrinsic;
+
+intrinsic GetFilenamesWithOrders(d::RngIntElt, orders::SeqEnum[RngIntElt]) -> Any
+  {}
+  f := Filenames(d);
+  filenames := [];
+  for s in f do
+    info := GetInfo(s);
+    assert info[1] eq d;
+    orders_test := info[3];
+    orders_set := Set(orders);
+    orders_test_set := Set(orders_test);
+    if orders_set eq orders_test_set then
+      Append(~filenames, s);
+    end if;
+  end for;
+  return filenames;
+end intrinsic;
+
+intrinsic GetFilenamesWithOrders(orders::SeqEnum[RngIntElt]) -> Any
+  {}
+  filenames := [];
+  for d in [2,4,8,16,32,64,128,256] do
+    filenames cat:= GetFilenamesWithOrders(d, orders);
+  end for;
+  return filenames;
+end intrinsic;
+
+intrinsic PrintOrdersForThesis() -> Any
+  {}
+  laxorders := GetLaxOrdersOfInterest();
+  assert laxorders[1] eq [1,1,1];
+  assert #laxorders eq 70;
+  filenames := AssociativeArray();
+  filenames[laxorders[1]] := [];
+  printf "%o : #files=1 : 0 s\n", laxorders[1];
+  for i := 2 to 70 do
+    t0 := Cputime();
+    filenamesi := GetFilenamesWithOrders(laxorders[i]);
+    t1 := Cputime();
+    printf "%o : #files=%o : %o s\n", laxorders[i], #filenamesi, t1-t0;
+    filenames[laxorders[i]] := filenamesi;
+  end for;
+  return filenames, laxorders;
 end intrinsic;
 
 /* all at once */
