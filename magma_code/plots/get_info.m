@@ -89,3 +89,25 @@ intrinsic NilpotencyClasses(d::RngIntElt) -> Any
   end for;
   return nc;
 end intrinsic;
+
+intrinsic GetPassportSizes(d::RngIntElt : lax := false) -> Any
+  {}
+  passports,keys := GetPassports(d : lax := lax);
+  sizes := AssociativeArray();
+  for key in keys do
+    size := #passports[key];
+    if IsDefined(sizes, size) then
+      Append(~sizes[size], passports[key]);
+    else
+      sizes[size] := [passports[key]];
+    end if;
+  end for;
+  for size in Keys(sizes) do
+    if lax then
+      printf "#laxpassports of size %o = %o\n", size, #sizes[size];
+    else
+      printf "#passports of size %o = %o\n", size, #sizes[size];
+    end if;
+  end for;
+  return sizes, Keys(sizes);
+end intrinsic;
