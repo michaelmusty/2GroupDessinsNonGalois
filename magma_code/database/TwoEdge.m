@@ -89,3 +89,10 @@ intrinsic TestEdge(s::TwoEdge) -> Any
   assert PermutationToBlocks(K.1) eq blocks;
   return true;
 end intrinsic;
+
+/* functions for accessing graph information */
+
+intrinsic Below(s::TwoDB) -> Any
+  {}
+  return [ReadTwoDB(DownstairsFilename(e)) : e in Edges(s)];
+end intrinsic;
