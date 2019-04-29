@@ -10,6 +10,9 @@ s2 := objs[3];
 F2, phi2 := Degree2(s2);
 assert BelyiMapSanityCheck(PermutationTriple(s2), F2, phi2);
 
+s := ReadTwoDB(Random(Filenames(256)));
+path := PathToPP1(s);
+
 /* phi2 := a2; */
 /* D0 := &+[Divisor(f) : f in Zeros(phi2)]; */
 /* Doo := &+[Divisor(f) : f in Poles(phi2)]; */

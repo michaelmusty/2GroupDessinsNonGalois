@@ -31,3 +31,39 @@ intrinsic Above(s::TwoDB) -> Any
   end for;
   return above;
 end intrinsic;
+
+// eventually probably want to search through these for "best" one
+intrinsic HasRamifiedBelow(s::TwoDB) -> Any
+  {}
+  below := Below(s);
+  orders_above := Orders(s);
+  ramified := [];
+  for t in below do
+    orders_below := Orders(t);
+    if orders_above ne orders_below then
+      assert not (false in [orders_above[i] ge orders_below[i] : i in [1..3]]);
+      Append(~ramified, t);
+    end if;
+  end for;
+  if #ramified gt 0 then
+    return true, ramified; // ramified is a sequence of all that are ramified below
+  else
+    return false;
+  end if;
+end intrinsic;
+
+intrinsic PathToPP1(s::TwoDB) -> Any
+  {}
+  s_iter := s;
+  path_reverse := [];
+  while Degree(s_iter) gt 2 do
+    if HasRamifiedBelow(s_iter) then
+      has_ram, ram_list := HasRamifiedBelow(s_iter);
+      Append(~path_reverse, ram_list[1]); // could select "best" candidate below here
+      s_iter := ram_list[1];
+    else
+      error Sprintf("%o has no path to PP1\nPartial Path:\n%o\n", Name(s), path_reverse);
+    end if;
+  end while;
+  return Reverse(path_reverse) cat [s];
+end intrinsic;

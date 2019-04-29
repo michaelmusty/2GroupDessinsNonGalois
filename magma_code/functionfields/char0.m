@@ -22,5 +22,6 @@ intrinsic Degree2(s::TwoDB) -> Any
     error "say what?";
   end if;
   phi := F.1;
+  assert BelyiMapSanityCheck(PermutationTriple(s), F, phi);
   return F, phi;
 end intrinsic;
