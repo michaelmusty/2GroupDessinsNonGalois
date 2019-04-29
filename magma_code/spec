@@ -11,6 +11,7 @@
     char0.m
     global.m
     sanity_check.m
+    manipulating_divisors.m
   }
   graph
   {
