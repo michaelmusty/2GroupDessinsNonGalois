@@ -6,8 +6,19 @@
     read_write.m
     creation.m
   }
+  functionfields
+  {
+    char0.m
+    global.m
+    sanity_check.m
+  }
+  graph
+  {
+    paths_to_PP1.m
+  }
   maps
   {
+    degree2.m
   }
   misc
   {
