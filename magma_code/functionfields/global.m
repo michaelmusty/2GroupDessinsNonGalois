@@ -8,7 +8,7 @@ intrinsic Degree2(s::TwoDB, q::RngIntElt) -> Any
   p := factorization[1][1];
   P<[x]> := PolynomialRing(Rationals(), 2);
   A := AffineSpace(P);
-  k := GF(p);
+  k := GF(q);
   kx<x> := PolynomialRing(k);
   kxy<y> := PolynomialRing(kx);
   passport_name := GetPassportNameFromFile(Filename(s));
@@ -25,5 +25,8 @@ intrinsic Degree2(s::TwoDB, q::RngIntElt) -> Any
     error "say what?";
   end if;
   phi := F.1;
-  return F, phi;
+  s`FunctionField := F;
+  s`BelyiMap := phi;
+  /* return F, phi; */
+  return s;
 end intrinsic;

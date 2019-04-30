@@ -1,6 +1,9 @@
 declare verbose TwoDB, 2;
 declare type TwoDB;
 declare attributes TwoDB:
+  // function field
+    FunctionField,
+    BelyiMap,
   // easy attributes
     Name,
     Filename,
@@ -42,6 +45,16 @@ intrinsic TwoDBInitialize() -> TwoDB
 end intrinsic;
 
 /* access attribues */
+
+intrinsic FunctionField(s::TwoDB) -> Any
+  {}
+  return s`FunctionField;
+end intrinsic;
+
+intrinsic BelyiMap(s::TwoDB) -> Any
+  {}
+  return s`BelyiMap;
+end intrinsic;
 
 intrinsic Name(s::TwoDB) -> Any
   {}
@@ -91,4 +104,11 @@ end intrinsic;
 intrinsic Edges(s::TwoDB) -> Any
   {}
   return s`Edges;
+end intrinsic;
+
+/* aux functions */
+
+intrinsic IsFunctionFieldComputed(s::TwoDB) -> Any
+  {}
+  return assigned s`FunctionField and assigned s`BelyiMap;
 end intrinsic;

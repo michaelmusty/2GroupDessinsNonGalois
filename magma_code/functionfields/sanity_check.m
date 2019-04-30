@@ -46,3 +46,12 @@ intrinsic BelyiMapSanityCheck(sigma::SeqEnum[GrpPermElt], F::FldFun, phi::FldFun
     end if;
   end if;
 end intrinsic;
+
+intrinsic TwoVerify(s::TwoDB) -> BoolElt
+  {}
+  if IsFunctionFieldComputed(s) then
+    return BelyiMapSanityCheck(PermutationTriple(s), FunctionField(s), BelyiMap(s));
+  else
+    return false;
+  end if;
+end intrinsic;

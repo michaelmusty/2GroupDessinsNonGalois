@@ -101,6 +101,24 @@ intrinsic WriteText(s::TwoDB) -> MonStgElt
   str := "";
   // always make an instance of the object
     str *:= "s := TwoDBInitialize();\n";
+  // function field attrs
+    str *:= "\n/*\nFunction field and Belyi map\n*/\n\n";
+    if IsFunctionFieldComputed(s) then
+      F := FunctionField(s);
+      GFq := BaseField(BaseField(F));
+      poly := DefiningPolynomial(F);
+      kxy := Parent(poly);
+      kx := BaseRing(Parent(poly));
+      assert Names(kxy)[1] eq "y";
+      assert Names(kx)[1] eq "x";
+      phi := BelyiMap(s);
+      assert phi in F;
+      str *:= Sprintf("k := %m;\n", GFq);
+      str *:= Sprintf("kx<x> := PolynomialRing(k);\n");
+      str *:= Sprintf("kxy<y> := PolynomialRing(kx);\n");
+      str *:= Sprintf("s`FunctionField := FunctionField(%o);\n", DefiningPolynomial(F));
+      str *:= Sprintf("s`BelyiMap := s`FunctionField!(%o);\n", BelyiMap(s));
+    end if;
   // easy (automatic) magma printing
     easy := [];
     Append(~easy, "Name");
