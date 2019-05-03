@@ -12,6 +12,7 @@
     global.m
     sanity_check.m
     manipulating_divisors.m
+    class_groups.m
   }
   graph
   {
