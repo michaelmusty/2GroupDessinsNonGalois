@@ -4,12 +4,6 @@ s := TwoDBInitialize();
 Function field and Belyi map
 */
 
-k := GF(3);
-kx<x> := PolynomialRing(k);
-kxy<y> := PolynomialRing(kx);
-s`FunctionField := FunctionField((x^2 + 2)*y + 2*x^2);
-s`BelyiMap := s`FunctionField!(x^2/(x^2 + 2));
-
 /*
 Magma printing
 */
